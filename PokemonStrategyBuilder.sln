@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokemonStrategyBuilder.API"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokemonStrategyBuilder.Domain.Tests", "PokemonStrategyBuilder.Domain.Tests\PokemonStrategyBuilder.Domain.Tests.csproj", "{DBFF9705-63ED-4E1D-B1A9-4AFAF492A547}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PokemonStrategyBuilder.Application.Tests", "PokemonStrategyBuilder.Application.Tests\PokemonStrategyBuilder.Application.Tests.csproj", "{0A7514E6-0FBB-4730-93A9-6863BD8E69C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +44,9 @@ Global
 		{DBFF9705-63ED-4E1D-B1A9-4AFAF492A547}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DBFF9705-63ED-4E1D-B1A9-4AFAF492A547}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DBFF9705-63ED-4E1D-B1A9-4AFAF492A547}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A7514E6-0FBB-4730-93A9-6863BD8E69C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A7514E6-0FBB-4730-93A9-6863BD8E69C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A7514E6-0FBB-4730-93A9-6863BD8E69C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A7514E6-0FBB-4730-93A9-6863BD8E69C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
