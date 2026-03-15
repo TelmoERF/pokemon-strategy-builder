@@ -2,6 +2,8 @@ using PokemonStrategyBuilder.Application.Interfaces;
 using PokemonStrategyBuilder.Application.Services;
 using PokemonStrategyBuilder.Domain.Interfaces;
 using PokemonStrategyBuilder.Domain.Services;
+using PokemonStrategyBuilder.Infrastructure.Clients;
+using PokemonStrategyBuilder.Infrastructure.Services;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +17,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ITypeEffectivenessService, TypeEffectivenessService>();
 builder.Services.AddScoped<ITeamWeaknessAnalyzerService, TeamWeaknessAnalyzerService>();
+builder.Services.AddHttpClient<PokeApiClient>(client =>
+{
+    client.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
+});
+builder.Services.AddScoped<IPokemonDataService, PokemonDataService>();
+
 
 
 var app = builder.Build();
