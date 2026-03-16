@@ -11,6 +11,7 @@ namespace PokemonStrategyBuilder.Infrastructure.Services;
 public class PokemonDataService : IPokemonDataService
 {
     private readonly PokeApiClient _pokeApiClient;
+    private readonly IPokemonRepository _pokemonRepository;
     private readonly IMemoryCache _memoryCache;
     private readonly ILogger<PokemonDataService> _logger;
 
@@ -18,10 +19,12 @@ public class PokemonDataService : IPokemonDataService
 
     public PokemonDataService(
         PokeApiClient pokeApiClient,
+        IPokemonRepository pokemonRepository,
         IMemoryCache memoryCache,
         ILogger<PokemonDataService> logger)
     {
         _pokeApiClient = pokeApiClient;
+        _pokemonRepository = pokemonRepository;
         _memoryCache = memoryCache;
         _logger = logger;
     }
@@ -38,6 +41,20 @@ public class PokemonDataService : IPokemonDataService
         }
 
         _logger.LogInformation("Cache miss for Pokémon '{PokemonName}'", normalizedName);
+
+        var dbPokemon = await _pokemonRepository.GetByNameAsync(normalizedName, cancellationToken);
+        if (dbPokemon is not null)
+        {
+            _logger.LogInformation("Database hit for Pokémon '{PokemonName}'", normalizedName);
+            _memoryCache.Set(cacheKey, dbPokemon, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = CacheDuration
+            });
+
+            return dbPokemon;
+        }
+
+        _logger.LogInformation("Database miss for Pokémon '{PokemonName}', fetching from PokeAPI", normalizedName);
 
         var response = await _pokeApiClient.GetPokemonByNameAsync(normalizedName, cancellationToken);
 
@@ -66,6 +83,8 @@ public class PokemonDataService : IPokemonDataService
             specialAttack: GetStat(response, "special-attack"),
             specialDefense: GetStat(response, "special-defense"),
             speed: GetStat(response, "speed"));
+
+        await _pokemonRepository.AddAsync(pokemon, cancellationToken);
 
         _memoryCache.Set(cacheKey, pokemon, new MemoryCacheEntryOptions
         {
