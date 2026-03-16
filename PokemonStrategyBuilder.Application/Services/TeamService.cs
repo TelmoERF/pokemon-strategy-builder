@@ -97,6 +97,77 @@ public class TeamService : ITeamService
         return _analyzer.Analyze(pokemon);
     }
 
+    public async Task<TeamDto?> UpdateAsync(int id, UpdateTeamRequestDto request, CancellationToken cancellationToken = default)
+    {
+        var team = await _teamRepository.GetByIdAsync(id, cancellationToken);
+
+        if (team is null)
+        {
+            return null;
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            throw new ArgumentException("Team name is required.");
+        }
+
+        if (request.PokemonNames is null || request.PokemonNames.Count == 0)
+        {
+            throw new ArgumentException("At least one Pokémon name must be provided.");
+        }
+
+        if (request.PokemonNames.Count > 6)
+        {
+            throw new ArgumentException("A team cannot contain more than 6 Pokémon.");
+        }
+
+        var resolvedPokemon = new List<Pokemon>();
+        var notFoundPokemon = new List<string>();
+
+        foreach (var pokemonName in request.PokemonNames)
+        {
+            var pokemon = await _pokemonDataService.GetPokemonByNameAsync(pokemonName, cancellationToken);
+
+            if (pokemon is null)
+            {
+                notFoundPokemon.Add(pokemonName);
+                continue;
+            }
+
+            resolvedPokemon.Add(pokemon);
+        }
+
+        if (notFoundPokemon.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"The following Pokémon could not be found: {string.Join(", ", notFoundPokemon)}");
+        }
+
+        team.SetName(request.Name);
+        team.ReplacePokemon(resolvedPokemon);
+
+        await _teamRepository.UpdateAsync(team, cancellationToken);
+
+        var updatedTeam = await _teamRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("Updated team could not be reloaded.");
+
+        return MapToDto(updatedTeam);
+    }
+
+    public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var team = await _teamRepository.GetByIdAsync(id, cancellationToken);
+
+        if (team is null)
+        {
+            return false;
+        }
+
+        await _teamRepository.DeleteAsync(team, cancellationToken);
+        return true;
+    }
+
+
     private static TeamDto MapToDto(Team team)
     {
         return new TeamDto
