@@ -5,6 +5,8 @@ using PokemonStrategyBuilder.Domain.Services;
 using PokemonStrategyBuilder.Infrastructure.Clients;
 using PokemonStrategyBuilder.Infrastructure.Services;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
+using PokemonStrategyBuilder.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +25,10 @@ builder.Services.AddHttpClient<PokeApiClient>(client =>
 });
 builder.Services.AddScoped<IPokemonDataService, PokemonDataService>();
 builder.Services.AddMemoryCache();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite("Data Source=pokemon-strategy-builder.db"));
+
+builder.Services.AddScoped<IPokemonRepository, PokemonRepository>();
 
 
 
