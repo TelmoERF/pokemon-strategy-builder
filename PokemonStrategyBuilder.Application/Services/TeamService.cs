@@ -10,18 +10,21 @@ public class TeamService : ITeamService
     private readonly IPokemonDataService _pokemonDataService;
     private readonly ITeamWeaknessAnalyzerService _analyzer;
     private readonly ITeamRatingService _teamRatingService;
+    private readonly IOffensiveCoverageService _offensiveCoverageService;
 
     public TeamService(
         ITeamRepository teamRepository,
         IPokemonDataService pokemonDataService,
         ITeamWeaknessAnalyzerService analyzer,
-        ITeamRatingService teamRatingService    
+        ITeamRatingService teamRatingService,
+        IOffensiveCoverageService offensiveCoverageService
         )
     {
         _teamRepository = teamRepository;
         _pokemonDataService = pokemonDataService;
         _analyzer = analyzer;
         _teamRatingService = teamRatingService;
+        _offensiveCoverageService = offensiveCoverageService;
     }
 
     public async Task<TeamDto> CreateAsync(CreateTeamRequestDto request, CancellationToken cancellationToken = default)
@@ -189,6 +192,21 @@ public class TeamService : ITeamService
         return _teamRatingService.Rate(team.Id, team.Name, pokemon, weaknesses);
     }
 
+    public async Task<OffensiveCoverageDto?> GetOffensiveCoverageAsync(int id, CancellationToken cancellationToken = default)
+{
+    var team = await _teamRepository.GetByIdAsync(id, cancellationToken);
+
+    if (team is null)
+    {
+        return null;
+    }
+
+    var pokemon = team.Pokemon
+        .Select(tp => tp.Pokemon)
+        .ToList();
+
+    return _offensiveCoverageService.Analyze(team.Id, team.Name, pokemon);
+}
 
     private static TeamDto MapToDto(Team team)
     {

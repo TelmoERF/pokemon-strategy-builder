@@ -32,6 +32,7 @@ builder.Services.AddScoped<IPokemonRepository, PokemonRepository>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<ITeamRatingService, TeamRatingService>();
+builder.Services.AddScoped<IOffensiveCoverageService, OffensiveCoverageService>();
 
 
 var app = builder.Build();

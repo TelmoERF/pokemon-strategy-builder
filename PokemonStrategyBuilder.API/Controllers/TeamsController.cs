@@ -130,5 +130,19 @@ public async Task<IActionResult> GetRating(int id, CancellationToken cancellatio
     return Ok(rating);
 }
 
+[HttpGet("{id:int}/offensive-coverage")]
+public async Task<IActionResult> GetOffensiveCoverage(int id, CancellationToken cancellationToken)
+{
+    var coverage = await _teamService.GetOffensiveCoverageAsync(id, cancellationToken);
+
+    if (coverage is null)
+    {
+        return NotFound();
+    }
+
+    return Ok(coverage);
+}
+
+
 
 }
