@@ -7,4 +7,8 @@ public interface ITeamService
     Task<TeamDto> CreateAsync(CreateTeamRequestDto request, CancellationToken cancellationToken = default);
     Task<TeamDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
     Task<List<TeamDto>> GetAllAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyCollection<TypeWeaknessDto>?> AnalyzeTeamAsync(
+    int teamId,
+    CancellationToken cancellationToken = default);
 }

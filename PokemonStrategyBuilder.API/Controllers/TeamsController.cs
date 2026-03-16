@@ -60,4 +60,17 @@ public class TeamsController : ControllerBase
         var teams = await _teamService.GetAllAsync(cancellationToken);
         return Ok(teams);
     }
+
+    [HttpPost("{id:int}/analyze")]
+    public async Task<IActionResult> Analyze(int id, CancellationToken cancellationToken)
+    {
+        var analysis = await _teamService.AnalyzeTeamAsync(id, cancellationToken);
+
+        if (analysis is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(analysis);
+    }
 }
