@@ -11,4 +11,5 @@ public interface ITeamService
     Task<TeamDto?> UpdateAsync(int id, UpdateTeamRequestDto request, CancellationToken cancellationToken = default);
     Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
     Task<TeamRatingDto?> GetRatingAsync(int id, CancellationToken cancellationToken = default);
+    Task<OffensiveCoverageDto?> GetOffensiveCoverageAsync(int id, CancellationToken cancellationToken = default);
 }
