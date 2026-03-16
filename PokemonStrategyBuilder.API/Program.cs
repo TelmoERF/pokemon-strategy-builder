@@ -22,6 +22,7 @@ builder.Services.AddHttpClient<PokeApiClient>(client =>
     client.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
 });
 builder.Services.AddScoped<IPokemonDataService, PokemonDataService>();
+builder.Services.AddMemoryCache();
 
 
 

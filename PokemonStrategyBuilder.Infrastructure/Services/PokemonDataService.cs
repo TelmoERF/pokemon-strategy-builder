@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using PokemonStrategyBuilder.Application.Interfaces;
 using PokemonStrategyBuilder.Domain.Entities;
 using PokemonStrategyBuilder.Domain.Enums;
@@ -9,15 +11,35 @@ namespace PokemonStrategyBuilder.Infrastructure.Services;
 public class PokemonDataService : IPokemonDataService
 {
     private readonly PokeApiClient _pokeApiClient;
+    private readonly IMemoryCache _memoryCache;
+    private readonly ILogger<PokemonDataService> _logger;
 
-    public PokemonDataService(PokeApiClient pokeApiClient)
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(30);
+
+    public PokemonDataService(
+        PokeApiClient pokeApiClient,
+        IMemoryCache memoryCache,
+        ILogger<PokemonDataService> logger)
     {
         _pokeApiClient = pokeApiClient;
+        _memoryCache = memoryCache;
+        _logger = logger;
     }
 
     public async Task<Pokemon?> GetPokemonByNameAsync(string name, CancellationToken cancellationToken = default)
     {
-        var response = await _pokeApiClient.GetPokemonByNameAsync(name, cancellationToken);
+        var normalizedName = name.Trim().ToLowerInvariant();
+        var cacheKey = $"pokemon:{normalizedName}";
+
+        if (_memoryCache.TryGetValue(cacheKey, out Pokemon? cachedPokemon))
+        {
+            _logger.LogInformation("Cache hit for Pokémon '{PokemonName}'", normalizedName);
+            return cachedPokemon;
+        }
+
+        _logger.LogInformation("Cache miss for Pokémon '{PokemonName}'", normalizedName);
+
+        var response = await _pokeApiClient.GetPokemonByNameAsync(normalizedName, cancellationToken);
 
         if (response is null)
         {
@@ -33,7 +55,7 @@ public class PokemonDataService : IPokemonDataService
             ? MapPokemonType(orderedTypes[1].Type.Name)
             : null;
 
-        return new Pokemon(
+        var pokemon = new Pokemon(
             id: response.Id,
             name: response.Name,
             primaryType: primaryType,
@@ -44,6 +66,13 @@ public class PokemonDataService : IPokemonDataService
             specialAttack: GetStat(response, "special-attack"),
             specialDefense: GetStat(response, "special-defense"),
             speed: GetStat(response, "speed"));
+
+        _memoryCache.Set(cacheKey, pokemon, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = CacheDuration
+        });
+
+        return pokemon;
     }
 
     private static int GetStat(PokeApiPokemonResponse response, string statName)
