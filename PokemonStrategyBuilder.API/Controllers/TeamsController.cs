@@ -73,4 +73,48 @@ public class TeamsController : ControllerBase
 
         return Ok(analysis);
     }
+
+    [HttpPut("{id:int}")]
+public async Task<IActionResult> Update(int id, [FromBody] UpdateTeamRequest request, CancellationToken cancellationToken)
+{
+    try
+    {
+        var dto = new UpdateTeamRequestDto
+        {
+            Name = request.Name,
+            PokemonNames = request.PokemonNames
+        };
+
+        var updatedTeam = await _teamService.UpdateAsync(id, dto, cancellationToken);
+
+        if (updatedTeam is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(updatedTeam);
+    }
+    catch (ArgumentException ex)
+    {
+        return BadRequest(new { ex.Message });
+    }
+    catch (InvalidOperationException ex)
+    {
+        return BadRequest(new { ex.Message });
+    }
+}
+
+[HttpDelete("{id:int}")]
+public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+{
+    var deleted = await _teamService.DeleteAsync(id, cancellationToken);
+
+    if (!deleted)
+    {
+        return NotFound();
+    }
+
+    return NoContent();
+}
+
 }

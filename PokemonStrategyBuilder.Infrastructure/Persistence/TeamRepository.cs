@@ -35,4 +35,15 @@ public class TeamRepository : ITeamRepository
                 .ThenInclude(tp => tp.Pokemon)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task UpdateAsync(Team team, CancellationToken cancellationToken = default)
+    {
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteAsync(Team team, CancellationToken cancellationToken = default)
+    {
+        _dbContext.Teams.Remove(team);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
 }
