@@ -14,16 +14,26 @@ public class Team
 
     public Team(string name)
     {
-        Name = name;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Team name cannot be empty.", nameof(name));
+        }
+
+        Name = name.Trim();
     }
 
-    public void AddPokemon(int pokemonId)
+    public void AddPokemon(Pokemon pokemon)
     {
         if (_pokemon.Count >= 6)
         {
             throw new InvalidOperationException("A team cannot have more than 6 Pokémon.");
         }
 
-        _pokemon.Add(new TeamPokemon(pokemonId));
+        if (_pokemon.Any(x => x.PokemonId == pokemon.Id))
+        {
+            throw new InvalidOperationException("This Pokémon is already in the team.");
+        }
+
+        _pokemon.Add(new TeamPokemon(pokemon.Id));
     }
 }

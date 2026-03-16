@@ -29,7 +29,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite("Data Source=pokemon-strategy-builder.db"));
 
 builder.Services.AddScoped<IPokemonRepository, PokemonRepository>();
-
+builder.Services.AddScoped<ITeamRepository, TeamRepository>();
+builder.Services.AddScoped<ITeamService, TeamService>();
 
 
 var app = builder.Build();

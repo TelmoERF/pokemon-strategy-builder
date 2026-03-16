@@ -6,6 +6,8 @@ namespace PokemonStrategyBuilder.Infrastructure.Persistence;
 public class ApplicationDbContext : DbContext
 {
     public DbSet<Pokemon> Pokemon => Set<Pokemon>();
+    public DbSet<Team> Teams => Set<Team>();
+    public DbSet<TeamPokemon> TeamPokemon => Set<TeamPokemon>();
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
