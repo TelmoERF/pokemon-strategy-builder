@@ -8,13 +8,16 @@ public class TeamService : ITeamService
 {
     private readonly ITeamRepository _teamRepository;
     private readonly IPokemonDataService _pokemonDataService;
+    private readonly ITeamWeaknessAnalyzerService _analyzer;
 
     public TeamService(
         ITeamRepository teamRepository,
-        IPokemonDataService pokemonDataService)
+        IPokemonDataService pokemonDataService,
+        ITeamWeaknessAnalyzerService analyzer)
     {
         _teamRepository = teamRepository;
         _pokemonDataService = pokemonDataService;
+        _analyzer = analyzer;
     }
 
     public async Task<TeamDto> CreateAsync(CreateTeamRequestDto request, CancellationToken cancellationToken = default)
@@ -74,6 +77,24 @@ public class TeamService : ITeamService
     {
         var teams = await _teamRepository.GetAllAsync(cancellationToken);
         return teams.Select(MapToDto).ToList();
+    }
+
+    public async Task<IReadOnlyCollection<TypeWeaknessDto>?> AnalyzeTeamAsync(
+    int teamId,
+    CancellationToken cancellationToken = default)
+    {
+        var team = await _teamRepository.GetByIdAsync(teamId, cancellationToken);
+
+        if (team is null)
+        {
+            return null;
+        }
+
+        var pokemon = team.Pokemon
+            .Select(tp => tp.Pokemon)
+            .ToList();
+
+        return _analyzer.Analyze(pokemon);
     }
 
     private static TeamDto MapToDto(Team team)
