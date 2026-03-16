@@ -117,4 +117,18 @@ public async Task<IActionResult> Delete(int id, CancellationToken cancellationTo
     return NoContent();
 }
 
+[HttpGet("{id:int}/rating")]
+public async Task<IActionResult> GetRating(int id, CancellationToken cancellationToken)
+{
+    var rating = await _teamService.GetRatingAsync(id, cancellationToken);
+
+    if (rating is null)
+    {
+        return NotFound();
+    }
+
+    return Ok(rating);
+}
+
+
 }
