@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PokemonStrategyBuilder.API.Models;
 using PokemonStrategyBuilder.Application.Interfaces;
-using PokemonStrategyBuilder.Domain.Entities;
 
 namespace PokemonStrategyBuilder.API.Controllers;
 
@@ -10,34 +9,68 @@ namespace PokemonStrategyBuilder.API.Controllers;
 public class TeamController : ControllerBase
 {
     private readonly ITeamWeaknessAnalyzerService _analyzer;
+    private readonly IPokemonDataService _pokemonDataService;
 
-    public TeamController(ITeamWeaknessAnalyzerService analyzer)
+    public TeamController(
+        ITeamWeaknessAnalyzerService analyzer,
+        IPokemonDataService pokemonDataService)
     {
         _analyzer = analyzer;
+        _pokemonDataService = pokemonDataService;
     }
 
     [HttpPost("analyze")]
-    public IActionResult Analyze([FromBody] AnalyzeTeamRequest request)
+    public async Task<IActionResult> Analyze(
+        [FromBody] AnalyzeTeamByNameRequest request,
+        CancellationToken cancellationToken)
     {
-        if (request.Pokemon is null || request.Pokemon.Count == 0)
+        if (request.PokemonNames is null || request.PokemonNames.Count == 0)
         {
-            return BadRequest("At least one Pokémon must be provided.");
+            return BadRequest("At least one Pokémon name must be provided.");
         }
 
-        var team = request.Pokemon.Select(p => new Pokemon(
-            id: 0,
-            name: "Unknown",
-            primaryType: p.PrimaryType,
-            secondaryType: p.SecondaryType,
-            hp: 0,
-            attack: 0,
-            defense: 0,
-            specialAttack: 0,
-            specialDefense: 0,
-            speed: 0)).ToList();
+        if (request.PokemonNames.Count > 6)
+        {
+            return BadRequest("A team cannot contain more than 6 Pokémon.");
+        }
+
+        var team = new List<PokemonStrategyBuilder.Domain.Entities.Pokemon>();
+        var notFound = new List<string>();
+
+        foreach (var name in request.PokemonNames)
+        {
+            var pokemon = await _pokemonDataService.GetPokemonByNameAsync(name, cancellationToken);
+
+            if (pokemon is null)
+            {
+                notFound.Add(name);
+                continue;
+            }
+
+            team.Add(pokemon);
+        }
+
+        if (notFound.Count > 0)
+        {
+            return NotFound(new
+            {
+                Message = "Some Pokémon could not be found.",
+                NotFoundPokemon = notFound
+            });
+        }
 
         var result = _analyzer.Analyze(team);
 
-        return Ok(result);
+        return Ok(new
+        {
+            Team = team.Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.PrimaryType,
+                p.SecondaryType
+            }),
+            Weaknesses = result
+        });
     }
 }
