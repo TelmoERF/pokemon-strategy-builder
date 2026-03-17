@@ -56,6 +56,9 @@ public class TeamPokemonConfiguration : IEntityTypeConfiguration<TeamPokemon>
         builder.Property(x => x.SpeedEv)
             .IsRequired();
 
+        builder.Navigation(x => x.Moves)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         builder.HasOne(x => x.Pokemon)
             .WithMany()
             .HasForeignKey(x => x.PokemonId)

@@ -27,6 +27,9 @@ public class TeamPokemon
     public int SpecialDefenseEv { get; private set; }
     public int SpeedEv { get; private set; }
 
+    private readonly List<TeamPokemonMove> _moves = [];
+    public IReadOnlyCollection<TeamPokemonMove> Moves => _moves.AsReadOnly();
+
     private TeamPokemon()
     {
     }
@@ -85,6 +88,28 @@ public class TeamPokemon
         SpecialAttackEv = specialAttackEv;
         SpecialDefenseEv = specialDefenseEv;
         SpeedEv = speedEv;
+    }
+
+    public void SetMoves(IEnumerable<Move> moves)
+    {
+        var moveList = moves.ToList();
+
+        if (moveList.Count > 4)
+        {
+            throw new InvalidOperationException("A Pokémon cannot have more than 4 moves.");
+        }
+
+        if (moveList.Select(m => m.Id).Distinct().Count() != moveList.Count)
+        {
+            throw new InvalidOperationException("A Pokémon cannot have duplicate moves.");
+        }
+
+        _moves.Clear();
+
+        for (var i = 0; i < moveList.Count; i++)
+        {
+            _moves.Add(new TeamPokemonMove(moveList[i].Id, i + 1));
+        }
     }
 
     private static void ValidateEv(int value, string paramName)
