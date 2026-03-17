@@ -22,10 +22,26 @@ public class TeamsController : ControllerBase
         try
         {
             var dto = new CreateTeamRequestDto
-            {
-                Name = request.Name,
-                PokemonNames = request.PokemonNames
-            };
+{
+    Name = request.Name,
+    Pokemon = request.Pokemon.Select(p => new TeamPokemonSlotRequestDto
+    {
+        SpeciesName = p.SpeciesName,
+        Nickname = p.Nickname,
+        Level = p.Level,
+        Item = p.Item,
+        Ability = p.Ability,
+        TeraType = p.TeraType,
+        IsShiny = p.IsShiny,
+        Gender = p.Gender,
+        HpEv = p.HpEv,
+        AttackEv = p.AttackEv,
+        DefenseEv = p.DefenseEv,
+        SpecialAttackEv = p.SpecialAttackEv,
+        SpecialDefenseEv = p.SpecialDefenseEv,
+        SpeedEv = p.SpeedEv
+    }).ToList()
+};
 
             var createdTeam = await _teamService.CreateAsync(dto, cancellationToken);
 
@@ -80,10 +96,26 @@ public async Task<IActionResult> Update(int id, [FromBody] UpdateTeamRequest req
     try
     {
         var dto = new UpdateTeamRequestDto
-        {
-            Name = request.Name,
-            PokemonNames = request.PokemonNames
-        };
+{
+    Name = request.Name,
+    Pokemon = request.Pokemon.Select(p => new TeamPokemonSlotRequestDto
+    {
+        SpeciesName = p.SpeciesName,
+        Nickname = p.Nickname,
+        Level = p.Level,
+        Item = p.Item,
+        Ability = p.Ability,
+        TeraType = p.TeraType,
+        IsShiny = p.IsShiny,
+        Gender = p.Gender,
+        HpEv = p.HpEv,
+        AttackEv = p.AttackEv,
+        DefenseEv = p.DefenseEv,
+        SpecialAttackEv = p.SpecialAttackEv,
+        SpecialDefenseEv = p.SpecialDefenseEv,
+        SpeedEv = p.SpeedEv
+    }).ToList()
+};
 
         var updatedTeam = await _teamService.UpdateAsync(id, dto, cancellationToken);
 

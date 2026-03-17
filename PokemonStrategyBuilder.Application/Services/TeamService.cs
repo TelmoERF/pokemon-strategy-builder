@@ -34,31 +34,46 @@ public class TeamService : ITeamService
             throw new ArgumentException("Team name is required.");
         }
 
-        if (request.PokemonNames is null || request.PokemonNames.Count == 0)
-        {
-            throw new ArgumentException("At least one Pokémon name must be provided.");
-        }
+        if (request.Pokemon is null || request.Pokemon.Count == 0)
+{
+    throw new ArgumentException("At least one Pokémon must be provided.");
+}
 
-        if (request.PokemonNames.Count > 6)
-        {
-            throw new ArgumentException("A team cannot contain more than 6 Pokémon.");
-        }
+if (request.Pokemon.Count > 6)
+{
+    throw new ArgumentException("A team cannot contain more than 6 Pokémon.");
+}
 
-        var team = new Team(request.Name);
-        var notFoundPokemon = new List<string>();
+var team = new Team(request.Name);
+var notFoundPokemon = new List<string>();
 
-        foreach (var pokemonName in request.PokemonNames)
-        {
-            var pokemon = await _pokemonDataService.GetPokemonByNameAsync(pokemonName, cancellationToken);
+foreach (var slot in request.Pokemon)
+{
+    var pokemon = await _pokemonDataService.GetPokemonByNameAsync(slot.SpeciesName, cancellationToken);
 
-            if (pokemon is null)
-            {
-                notFoundPokemon.Add(pokemonName);
-                continue;
-            }
+    if (pokemon is null)
+    {
+        notFoundPokemon.Add(slot.SpeciesName);
+        continue;
+    }
 
-            team.AddPokemon(pokemon);
-        }
+    team.AddPokemon(
+        pokemon: pokemon,
+        nickname: slot.Nickname,
+        level: slot.Level,
+        item: slot.Item,
+        ability: slot.Ability,
+        teraType: slot.TeraType,
+        isShiny: slot.IsShiny,
+        gender: slot.Gender,
+        hpEv: slot.HpEv,
+        attackEv: slot.AttackEv,
+        defenseEv: slot.DefenseEv,
+        specialAttackEv: slot.SpecialAttackEv,
+        specialDefenseEv: slot.SpecialDefenseEv,
+        speedEv: slot.SpeedEv);
+}
+
 
         if (notFoundPokemon.Count > 0)
         {
@@ -105,61 +120,77 @@ public class TeamService : ITeamService
     }
 
     public async Task<TeamDto?> UpdateAsync(int id, UpdateTeamRequestDto request, CancellationToken cancellationToken = default)
+{
+    var team = await _teamRepository.GetByIdAsync(id, cancellationToken);
+
+    if (team is null)
     {
-        var team = await _teamRepository.GetByIdAsync(id, cancellationToken);
-
-        if (team is null)
-        {
-            return null;
-        }
-
-        if (string.IsNullOrWhiteSpace(request.Name))
-        {
-            throw new ArgumentException("Team name is required.");
-        }
-
-        if (request.PokemonNames is null || request.PokemonNames.Count == 0)
-        {
-            throw new ArgumentException("At least one Pokémon name must be provided.");
-        }
-
-        if (request.PokemonNames.Count > 6)
-        {
-            throw new ArgumentException("A team cannot contain more than 6 Pokémon.");
-        }
-
-        var resolvedPokemon = new List<Pokemon>();
-        var notFoundPokemon = new List<string>();
-
-        foreach (var pokemonName in request.PokemonNames)
-        {
-            var pokemon = await _pokemonDataService.GetPokemonByNameAsync(pokemonName, cancellationToken);
-
-            if (pokemon is null)
-            {
-                notFoundPokemon.Add(pokemonName);
-                continue;
-            }
-
-            resolvedPokemon.Add(pokemon);
-        }
-
-        if (notFoundPokemon.Count > 0)
-        {
-            throw new InvalidOperationException(
-                $"The following Pokémon could not be found: {string.Join(", ", notFoundPokemon)}");
-        }
-
-        team.SetName(request.Name);
-        team.ReplacePokemon(resolvedPokemon);
-
-        await _teamRepository.UpdateAsync(team, cancellationToken);
-
-        var updatedTeam = await _teamRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("Updated team could not be reloaded.");
-
-        return MapToDto(updatedTeam);
+        return null;
     }
+
+    if (string.IsNullOrWhiteSpace(request.Name))
+    {
+        throw new ArgumentException("Team name is required.");
+    }
+
+    if (request.Pokemon is null || request.Pokemon.Count == 0)
+    {
+        throw new ArgumentException("At least one Pokémon must be provided.");
+    }
+
+    if (request.Pokemon.Count > 6)
+    {
+        throw new ArgumentException("A team cannot contain more than 6 Pokémon.");
+    }
+
+    var resolvedSlots = new List<(Pokemon Pokemon, TeamPokemon Slot)>();
+    var notFoundPokemon = new List<string>();
+
+    foreach (var slot in request.Pokemon)
+    {
+        var pokemon = await _pokemonDataService.GetPokemonByNameAsync(slot.SpeciesName, cancellationToken);
+
+        if (pokemon is null)
+        {
+            notFoundPokemon.Add(slot.SpeciesName);
+            continue;
+        }
+
+        var teamPokemonSlot = new TeamPokemon(
+            pokemonId: pokemon.Id,
+            nickname: slot.Nickname,
+            level: slot.Level,
+            item: slot.Item,
+            ability: slot.Ability,
+            teraType: slot.TeraType,
+            isShiny: slot.IsShiny,
+            gender: slot.Gender,
+            hpEv: slot.HpEv,
+            attackEv: slot.AttackEv,
+            defenseEv: slot.DefenseEv,
+            specialAttackEv: slot.SpecialAttackEv,
+            specialDefenseEv: slot.SpecialDefenseEv,
+            speedEv: slot.SpeedEv);
+
+        resolvedSlots.Add((pokemon, teamPokemonSlot));
+    }
+
+    if (notFoundPokemon.Count > 0)
+    {
+        throw new InvalidOperationException(
+            $"The following Pokémon could not be found: {string.Join(", ", notFoundPokemon)}");
+    }
+
+    team.SetName(request.Name);
+    team.ReplacePokemon(resolvedSlots);
+
+    await _teamRepository.UpdateAsync(team, cancellationToken);
+
+    var updatedTeam = await _teamRepository.GetByIdAsync(id, cancellationToken)
+        ?? throw new InvalidOperationException("Updated team could not be reloaded.");
+
+    return MapToDto(updatedTeam);
+}
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
@@ -209,18 +240,31 @@ public class TeamService : ITeamService
 }
 
     private static TeamDto MapToDto(Team team)
+{
+    return new TeamDto
     {
-        return new TeamDto
+        Id = team.Id,
+        Name = team.Name,
+        Pokemon = team.Pokemon.Select(tp => new TeamPokemonDto
         {
-            Id = team.Id,
-            Name = team.Name,
-            Pokemon = team.Pokemon.Select(tp => new TeamPokemonDto
-            {
-                Id = tp.Pokemon.Id,
-                Name = tp.Pokemon.Name,
-                PrimaryType = tp.Pokemon.PrimaryType.ToString(),
-                SecondaryType = tp.Pokemon.SecondaryType?.ToString()
-            }).ToList()
-        };
-    }
+            Id = tp.Pokemon.Id,
+            Name = tp.Pokemon.Name,
+            PrimaryType = tp.Pokemon.PrimaryType.ToString(),
+            SecondaryType = tp.Pokemon.SecondaryType?.ToString(),
+            Nickname = tp.Nickname,
+            Level = tp.Level,
+            Item = tp.Item,
+            Ability = tp.Ability,
+            TeraType = tp.TeraType?.ToString(),
+            IsShiny = tp.IsShiny,
+            Gender = tp.Gender.ToString(),
+            HpEv = tp.HpEv,
+            AttackEv = tp.AttackEv,
+            DefenseEv = tp.DefenseEv,
+            SpecialAttackEv = tp.SpecialAttackEv,
+            SpecialDefenseEv = tp.SpecialDefenseEv,
+            SpeedEv = tp.SpeedEv
+        }).ToList()
+    };
+}
 }
