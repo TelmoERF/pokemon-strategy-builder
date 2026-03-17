@@ -39,7 +39,8 @@ public class TeamsController : ControllerBase
         DefenseEv = p.DefenseEv,
         SpecialAttackEv = p.SpecialAttackEv,
         SpecialDefenseEv = p.SpecialDefenseEv,
-        SpeedEv = p.SpeedEv
+        SpeedEv = p.SpeedEv,
+        Moves = p.Moves
     }).ToList()
 };
 
@@ -113,7 +114,8 @@ public async Task<IActionResult> Update(int id, [FromBody] UpdateTeamRequest req
         DefenseEv = p.DefenseEv,
         SpecialAttackEv = p.SpecialAttackEv,
         SpecialDefenseEv = p.SpecialDefenseEv,
-        SpeedEv = p.SpeedEv
+        SpeedEv = p.SpeedEv,
+        Moves = p.Moves
     }).ToList()
 };
 

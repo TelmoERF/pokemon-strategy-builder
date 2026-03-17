@@ -30,4 +30,23 @@ public class PokeApiClient
 
         return await response.Content.ReadFromJsonAsync<PokeApiPokemonResponse>(cancellationToken: cancellationToken);
     }
+
+    public async Task<PokeApiMoveResponse?> GetMoveByNameAsync(
+    string name,
+    CancellationToken cancellationToken = default)
+{
+    var response = await _httpClient.GetAsync(
+        $"move/{name.ToLowerInvariant()}",
+        cancellationToken);
+
+    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+    {
+        return null;
+    }
+
+    response.EnsureSuccessStatusCode();
+
+    return await response.Content.ReadFromJsonAsync<PokeApiMoveResponse>(cancellationToken: cancellationToken);
+}
+
 }

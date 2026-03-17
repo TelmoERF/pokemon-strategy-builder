@@ -28,4 +28,6 @@ public class TeamPokemonDto
     public int SpecialAttackEv { get; set; }
     public int SpecialDefenseEv { get; set; }
     public int SpeedEv { get; set; }
+
+    public List<string> Moves { get; set; } = [];
 }
