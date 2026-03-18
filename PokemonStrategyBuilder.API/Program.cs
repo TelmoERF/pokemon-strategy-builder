@@ -35,6 +35,8 @@ builder.Services.AddScoped<ITeamRatingService, TeamRatingService>();
 builder.Services.AddScoped<IOffensiveCoverageService, OffensiveCoverageService>();
 builder.Services.AddScoped<IMoveRepository, MoveRepository>();
 builder.Services.AddScoped<IMoveDataService, MoveDataService>();
+builder.Services.AddScoped<ITeamRoleDetectionService, TeamRoleDetectionService>();
+
 
 
 var app = builder.Build();

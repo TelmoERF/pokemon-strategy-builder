@@ -12,6 +12,8 @@ public class TeamService : ITeamService
     private readonly ITeamRatingService _teamRatingService;
     private readonly IOffensiveCoverageService _offensiveCoverageService;
     private readonly IMoveDataService _moveDataService;
+    private readonly ITeamRoleDetectionService _teamRoleDetectionService;
+
 
     public TeamService(
         ITeamRepository teamRepository,
@@ -19,7 +21,8 @@ public class TeamService : ITeamService
         ITeamWeaknessAnalyzerService analyzer,
         ITeamRatingService teamRatingService,
         IOffensiveCoverageService offensiveCoverageService,
-        IMoveDataService moveDataService)
+        IMoveDataService moveDataService,
+        ITeamRoleDetectionService teamRoleDetectionService )
     {
         _teamRepository = teamRepository;
         _pokemonDataService = pokemonDataService;
@@ -27,6 +30,7 @@ public class TeamService : ITeamService
         _teamRatingService = teamRatingService;
         _offensiveCoverageService = offensiveCoverageService;
         _moveDataService = moveDataService;
+        _teamRoleDetectionService = teamRoleDetectionService;
     }
 
     public async Task<TeamDto> CreateAsync(CreateTeamRequestDto request, CancellationToken cancellationToken = default)
@@ -282,6 +286,18 @@ public async Task<OffensiveCoverageDto?> GetOffensiveCoverageAsync(int id, Cance
     }
 
     return _offensiveCoverageService.AnalyzeFromTeamSlots(team.Id, team.Name, team.Pokemon.ToList());
+}
+
+public async Task<TeamRoleAnalysisDto?> GetRoleAnalysisAsync(int id, CancellationToken cancellationToken = default)
+{
+    var team = await _teamRepository.GetByIdAsync(id, cancellationToken);
+
+    if (team is null)
+    {
+        return null;
+    }
+
+    return _teamRoleDetectionService.Analyze(team.Id, team.Name, team.Pokemon.ToList());
 }
 
 

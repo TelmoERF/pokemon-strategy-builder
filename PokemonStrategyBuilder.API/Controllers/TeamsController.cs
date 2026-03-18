@@ -177,6 +177,20 @@ public async Task<IActionResult> GetOffensiveCoverage(int id, CancellationToken 
     return Ok(coverage);
 }
 
+[HttpGet("{id:int}/roles")]
+public async Task<IActionResult> GetRoles(int id, CancellationToken cancellationToken)
+{
+    var roles = await _teamService.GetRoleAnalysisAsync(id, cancellationToken);
+
+    if (roles is null)
+    {
+        return NotFound();
+    }
+
+    return Ok(roles);
+}
+
+
 
 
 }
