@@ -3,6 +3,7 @@ using PokemonStrategyBuilder.Application.Interfaces;
 using PokemonStrategyBuilder.Domain.Entities;
 using PokemonStrategyBuilder.Domain.Enums;
 using PokemonStrategyBuilder.Domain.Interfaces;
+using PokemonStrategyBuilder.Domain.Services;
 
 namespace PokemonStrategyBuilder.Application.Services;
 
@@ -17,10 +18,15 @@ public class OffensiveCoverageService : IOffensiveCoverageService
 
     public OffensiveCoverageDto Analyze(int teamId, string teamName, IReadOnlyCollection<Pokemon> pokemon)
     {
-        var availableAttackingTypes = pokemon
-            .SelectMany(p => new[] { p.PrimaryType, p.SecondaryType })
-            .Where(t => t.HasValue)
-            .Select(t => t!.Value)
+        throw new NotSupportedException("Use the overload that accepts TeamPokemon slots.");
+    }
+
+    public OffensiveCoverageDto AnalyzeFromTeamSlots(int teamId, string teamName, IReadOnlyCollection<TeamPokemon> teamPokemon)
+    {
+        var availableAttackingTypes = teamPokemon
+            .SelectMany(tp => tp.Moves)
+            .Where(m => m.Move.Category != MoveCategory.Status)
+            .Select(m => m.Move.Type)
             .Distinct()
             .OrderBy(t => t)
             .ToList();
@@ -32,6 +38,7 @@ public class OffensiveCoverageService : IOffensiveCoverageService
         {
             var coveringAttackTypes = availableAttackingTypes
                 .Where(attackingType => _typeEffectivenessService.GetEffectiveness(attackingType, defendingType) > 1.0)
+                .Distinct()
                 .ToList();
 
             if (coveringAttackTypes.Count > 0)
@@ -48,7 +55,8 @@ public class OffensiveCoverageService : IOffensiveCoverageService
             }
         }
 
-        var coverageScore = (int)Math.Round((double)coveredTypes.Count / Enum.GetValues<PokemonType>().Length * 100);
+        var coverageScore = (int)Math.Round(
+            (double)coveredTypes.Count / Enum.GetValues<PokemonType>().Length * 100);
 
         return new OffensiveCoverageDto
         {

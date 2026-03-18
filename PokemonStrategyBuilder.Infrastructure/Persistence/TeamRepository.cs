@@ -25,6 +25,9 @@ public class TeamRepository : ITeamRepository
         return await _dbContext.Teams
             .Include(t => t.Pokemon)
                 .ThenInclude(tp => tp.Pokemon)
+            .Include(t => t.Pokemon)
+                .ThenInclude(tp => tp.Moves)
+                    .ThenInclude(tpm => tpm.Move)
             .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
     }
 
@@ -33,6 +36,9 @@ public class TeamRepository : ITeamRepository
         return await _dbContext.Teams
             .Include(t => t.Pokemon)
                 .ThenInclude(tp => tp.Pokemon)
+            .Include(t => t.Pokemon)
+                .ThenInclude(tp => tp.Moves)
+                    .ThenInclude(tpm => tpm.Move)
             .ToListAsync(cancellationToken);
     }
 
