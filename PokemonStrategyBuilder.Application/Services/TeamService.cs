@@ -272,21 +272,18 @@ public class TeamService : ITeamService
         return _teamRatingService.Rate(team.Id, team.Name, pokemon, weaknesses);
     }
 
-    public async Task<OffensiveCoverageDto?> GetOffensiveCoverageAsync(int id, CancellationToken cancellationToken = default)
+public async Task<OffensiveCoverageDto?> GetOffensiveCoverageAsync(int id, CancellationToken cancellationToken = default)
+{
+    var team = await _teamRepository.GetByIdAsync(id, cancellationToken);
+
+    if (team is null)
     {
-        var team = await _teamRepository.GetByIdAsync(id, cancellationToken);
-
-        if (team is null)
-        {
-            return null;
-        }
-
-        var pokemon = team.Pokemon
-            .Select(tp => tp.Pokemon)
-            .ToList();
-
-        return _offensiveCoverageService.Analyze(team.Id, team.Name, pokemon);
+        return null;
     }
+
+    return _offensiveCoverageService.AnalyzeFromTeamSlots(team.Id, team.Name, team.Pokemon.ToList());
+}
+
 
     private static TeamDto MapToDto(Team team)
     {
